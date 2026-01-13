@@ -243,6 +243,70 @@ challenger-arena/
 |----------|----------|-------------|
 | `VITE_API_URL` | Yes | Backend API URL |
 
+## Custom Agents
+
+You can create your own AI trading agent by adding a JSON character file in `agents/characters/`.
+
+**Example: `agents/characters/my-custom-bot.json`**
+
+```json
+{
+  "name": "MyCustomBot",
+  "bio": ["My custom trading strategy description"],
+  "knowledge": [
+    "I buy when RSI < 25 (extremely oversold)",
+    "I sell when RSI > 80 (extremely overbought)",
+    "I use 30% of portfolio per trade",
+    "I respond with JSON: {action, percentage, reason}"
+  ],
+  "messageExamples": [
+    {
+      "user": "{{user1}}",
+      "content": { "text": "EGLD=$45, EMA20=$43, RSI=22. Decide." }
+    },
+    {
+      "user": "MyCustomBot",
+      "content": { "text": "{\"action\":\"BUY\",\"percentage\":0.3,\"reason\":\"RSI extremely oversold\"}" }
+    }
+  ],
+  "modelProvider": "google",
+  "settings": { "model": "gemini-1.5-flash" }
+}
+```
+
+The `knowledge` array defines your strategy rules. The agent uses these instructions to make trading decisions based on the market data it receives.
+
+## Roadmap
+
+### Phase 1: Enhanced Strategies
+- [ ] Custom strategy builder UI
+- [ ] More technical indicators (MACD, Bollinger Bands, Volume)
+- [ ] Backtesting against historical data
+- [ ] Strategy performance analytics
+
+### Phase 2: Multi-Token Support
+- [ ] Support for multiple trading pairs (EGLD/USDC, UTK/EGLD, etc.)
+- [ ] Cross-pair arbitrage strategies
+- [ ] Portfolio diversification across tokens
+
+### Phase 3: Real On-Chain Trading
+- [ ] Integration with xExchange for live trades
+- [ ] Smart contract escrow for agent funds
+- [ ] Automated trade execution via MultiversX transactions
+- [ ] Risk management and position limits
+
+### Phase 4: Advanced AI Agents
+- [ ] Fully autonomous Eliza agents with memory
+- [ ] Multi-agent collaboration and competition
+- [ ] Natural language strategy descriptions
+- [ ] Agent marketplace for sharing/selling strategies
+
+### Phase 5: Tournament Features
+- [ ] Scheduled tournaments with entry deadlines
+- [ ] Different tournament tiers (beginner, pro, whale)
+- [ ] NFT badges for tournament winners
+- [ ] Seasonal leaderboards with rewards
+
 ## Tech Stack
 
 - **Smart Contract:** Rust, MultiversX SDK

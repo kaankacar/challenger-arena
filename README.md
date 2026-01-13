@@ -1,285 +1,257 @@
-# Challenger Arena - AI Trading Tournament
+# Challenger Arena
 
-A competitive AI trading tournament where Eliza agents compete on a real-time leaderboard using simulated trading with live price feeds from xExchange on MultiversX.
+**AI agents deciding and acting onchain**
 
-**Built for Build Wars - Battle of Nodes (MultiversX Hackathon)**
+A competitive AI trading tournament platform where autonomous agents compete using real-time price data from MultiversX.
 
-## Overview
+![Challenger Arena Dashboard](./docs/screenshot.png)
 
-Challenger Arena is a DeFi + Gaming hybrid project where:
-- AI agents make **autonomous trading decisions** using LLM-powered strategies
-- Trading is **simulated** but uses **live real-time price feeds** from xExchange
-- Agents compete on a **real-time leaderboard** ranked by ROI
-- Winners receive **EGLD prizes** distributed via smart contract
+## Live Demo
 
-### Key Features
+- **Frontend:** https://challenger-arena.vercel.app
+- **API:** https://challenger-arena-production.up.railway.app
 
-- **3 Pre-Built Strategy Templates:**
-  - **Momentum** (20-period EMA crossover)
-  - **DCA** (Dollar Cost Averaging at regular intervals)
-  - **Mean Reversion** (RSI-based buy/sell signals)
+## What is Challenger Arena?
 
-- **Live Price Integration:** Real-time EGLD/USD prices from CoinGecko/xExchange
-- **AI Decision Making:** Eliza framework + Portkey AI Gateway (Gemini 1.5 Flash)
-- **On-Chain Registration:** MultiversX smart contract for agent registration and prize distribution
+Challenger Arena is a platform where AI trading agents compete against each other in real-time. Each agent:
+
+- Starts with **$1,000 USDC** virtual balance
+- Uses one of **3 pre-built trading strategies**
+- Makes autonomous buy/sell decisions based on **live EGLD prices**
+- Competes for the highest **ROI (Return on Investment)**
+
+The tournament runs continuously, with agents making decisions every 60 seconds based on real market data from CoinGecko.
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Live Price Feed** | Real-time EGLD/USD prices from CoinGecko |
+| **3 Strategy Templates** | Momentum (EMA), DCA, Mean Reversion (RSI) |
+| **Real-Time Leaderboard** | Rankings update as agents trade |
+| **Trade History** | Full audit trail of all agent decisions |
+| **On-Chain Registration** | MultiversX smart contract for entry fees & prizes |
+| **AI Decision Engine** | Eliza framework with Gemini 1.5 Flash |
+
+## Trading Strategies
+
+### Momentum (EMA Crossover)
+Uses a 20-period Exponential Moving Average to identify trends.
+- **BUY** when price crosses above EMA (bullish signal)
+- **SELL** when price crosses below EMA (bearish signal)
+- Trades 50% of available balance per signal
+
+### Dollar Cost Averaging (DCA)
+Time-based strategy that ignores price movements.
+- Buys **$50 worth of EGLD** every 10 price updates
+- Reduces average cost through consistent accumulation
+- Best for sideways or gradually rising markets
+
+### Mean Reversion (RSI)
+Uses 14-period Relative Strength Index to find overbought/oversold conditions.
+- **BUY** when RSI < 30 (oversold)
+- **SELL** when RSI > 70 (overbought)
+- Trades 30% of available balance per signal
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         FRONTEND (React + Vite)                      │
-│     Registration Form │ Live Leaderboard │ Agent Detail + History    │
-└─────────────────────────────────────────────────────────────────────┘
-                                  │
-                    ┌─────────────┴─────────────┐
-                    ▼                           ▼
-┌─────────────────────────────┐   ┌───────────────────────────────────┐
-│    SMART CONTRACT (Rust)    │   │    STRATEGY ENGINE (Node.js/TS)    │
-│  - Agent Registration       │   │  - Price Feed Service              │
-│  - Tournament State         │   │  - 3 Strategy Templates            │
-│  - Prize Distribution       │   │  - Tournament Simulator            │
-└─────────────────────────────┘   │  - Eliza Agent Integration         │
-             │                     └───────────────────────────────────┘
-             ▼
-┌─────────────────────────────┐
-│   MultiversX Testnet        │
-└─────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    FRONTEND (React + Vite)                    │
+│         Live Leaderboard │ Registration │ Agent Details       │
+└──────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────────┐
+│   SMART CONTRACT        │     │   STRATEGY ENGINE           │
+│   (Rust/MultiversX)     │     │   (Node.js/TypeScript)      │
+│                         │     │                             │
+│ • Agent Registration    │     │ • Price Feed Service        │
+│ • Entry Fee Collection  │     │ • Strategy Execution        │
+│ • Prize Distribution    │     │ • Portfolio Management      │
+│ • Tournament State      │     │ • Trade Simulation          │
+└─────────────────────────┘     │ • WebSocket Updates         │
+              │                 └─────────────────────────────┘
+              ▼                               │
+┌─────────────────────────┐                   ▼
+│   MultiversX Testnet    │     ┌─────────────────────────────┐
+└─────────────────────────┘     │   CoinGecko Price API       │
+                                └─────────────────────────────┘
 ```
 
-## Quick Start
+## Getting Started
 
 ### Prerequisites
 
-```bash
-# Install Rust (for smart contract)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup target add wasm32-unknown-unknown
+- Node.js 23.3+
+- Rust (for smart contract compilation)
+- MultiversX CLI (`mxpy`)
 
-# Install mxpy (MultiversX CLI)
-pip3 install --upgrade multiversx-sdk-cli
+### Local Development
 
-# Install sc-meta (smart contract build tool)
-cargo install multiversx-sc-meta
-
-# Install Node.js 23.3+ (required for Eliza)
-nvm install 23.3.0
-nvm use 23.3.0
-
-# Install pnpm
-npm install -g pnpm
-```
-
-### 1. Deploy Smart Contract
+**1. Clone and install dependencies:**
 
 ```bash
-# Generate testnet wallet
-mxpy wallet new --format pem --outfile ~/testnet-wallet.pem
+git clone https://github.com/kaankacar/challenger-arena.git
+cd challenger-arena
 
-# Get testnet EGLD from faucet
-# https://testnet-wallet.multiversx.com/faucet
+# Install engine dependencies
+cd engine && npm install
 
-# Build and deploy
-cd contracts/scripts
-./deploy.sh
+# Install frontend dependencies
+cd ../frontend && npm install
 ```
 
-### 2. Start Strategy Engine
+**2. Configure environment:**
 
 ```bash
-cd engine
-
-# Install dependencies
-npm install
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your settings
-
-# Start the engine
-npm run dev
+# Engine configuration
+cp engine/.env.example engine/.env
+# Edit with your API keys
 ```
 
-### 3. Start Frontend
+**3. Start the services:**
 
 ```bash
-cd frontend
+# Terminal 1: Start engine
+cd engine && npm run dev
 
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+# Terminal 2: Start frontend
+cd frontend && npm run dev
 ```
 
-### 4. Register Agents
+**4. Open http://localhost:3000**
 
-Open http://localhost:3000 and:
-1. Enter agent name
-2. Enter your wallet address
+### Register an Agent
+
+**Via the UI:**
+1. Click "Register Agent"
+2. Enter agent name and wallet address
 3. Select a strategy
-4. Click "Register Agent"
+4. Submit
 
-Or via API:
+**Via API:**
 ```bash
 curl -X POST http://localhost:3001/api/agents \
   -H "Content-Type: application/json" \
-  -d '{"agentId": "MyBot", "playerAddress": "erd1...", "strategyType": "momentum"}'
+  -d '{
+    "agentId": "MyBot",
+    "playerAddress": "erd1...",
+    "strategyType": "momentum"
+  }'
 ```
 
-### 5. Start Tournament
-
+**Start the tournament:**
 ```bash
 curl -X POST http://localhost:3001/api/tournament/start
 ```
+
+## API Reference
+
+### REST Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check |
+| `GET` | `/api/price` | Current EGLD price with indicators |
+| `GET` | `/api/leaderboard` | Tournament rankings |
+| `GET` | `/api/agents/:id` | Agent details and trade history |
+| `POST` | `/api/agents` | Register new agent |
+| `GET` | `/api/tournament` | Tournament status |
+| `POST` | `/api/tournament/start` | Start tournament |
+| `POST` | `/api/tournament/stop` | Stop tournament |
+
+### WebSocket Events
+
+Connect to `ws://localhost:3001` for real-time updates:
+
+| Event | Payload |
+|-------|---------|
+| `price_update` | `{ price, timestamp, source, indicators }` |
+| `leaderboard_update` | `{ leaderboard, statistics }` |
+| `trade_executed` | `{ agentId, action, amount, price }` |
+
+## Smart Contract
+
+The MultiversX smart contract handles:
+
+- **Agent Registration:** 0.01 EGLD entry fee
+- **Prize Pool:** Accumulated from entry fees
+- **Prize Distribution:** 50% / 30% / 20% for top 3
+
+### Contract Functions
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `registerAgent` | Public | Register agent (payable, 0.01 EGLD) |
+| `startTournament` | Owner | Begin the tournament |
+| `updateScore` | Owner | Update agent ROI from engine |
+| `endTournament` | Owner | End and distribute prizes |
+| `getLeaderboard` | View | Get all agents by ROI |
+| `getAgent` | View | Get single agent details |
 
 ## Project Structure
 
 ```
 challenger-arena/
-├── contracts/              # MultiversX Smart Contract (Rust)
+├── contracts/                # MultiversX Smart Contract
 │   ├── tournament/
-│   │   ├── src/lib.rs     # Main contract (~200 LOC)
+│   │   ├── src/lib.rs       # Contract logic
 │   │   └── Cargo.toml
 │   └── scripts/
-│       ├── deploy.sh      # Deployment script
-│       └── interact.sh    # Contract interaction helpers
+│       └── deploy.sh        # Deployment script
 │
-├── engine/                 # Strategy Engine (Node.js/TypeScript)
+├── engine/                   # Trading Engine
 │   ├── src/
-│   │   ├── services/      # Price feed, leaderboard, contract
-│   │   ├── strategies/    # Momentum, DCA, Mean Reversion
-│   │   └── simulator/     # Portfolio, tournament logic
+│   │   ├── services/        # Price feed, leaderboard
+│   │   ├── strategies/      # Trading strategy implementations
+│   │   ├── simulator/       # Portfolio & trade execution
+│   │   └── index.ts         # Express server
 │   └── package.json
 │
-├── frontend/               # React Dashboard
+├── frontend/                 # React Dashboard
 │   ├── src/
-│   │   ├── components/    # Leaderboard, PriceChart, etc.
-│   │   └── pages/         # Home, Register, AgentDetail
+│   │   ├── components/      # UI components
+│   │   ├── pages/           # Route pages
+│   │   ├── hooks/           # React hooks
+│   │   └── services/        # API client
 │   └── package.json
 │
-├── agents/                 # Eliza Agent Configurations
-│   ├── characters/        # JSON character files
-│   └── setup.sh           # Agent setup script
+├── agents/                   # Eliza Agent Characters
+│   └── characters/          # Strategy-specific character files
 │
-├── plan.md                # Implementation plan
-└── README.md              # This file
+└── docs/
+    └── screenshot.png       # Dashboard screenshot
 ```
 
-## Strategies
+## Environment Variables
 
-### Momentum (EMA Crossover)
-- Uses 20-period Exponential Moving Average
-- **BUY** when price crosses above EMA (bullish momentum)
-- **SELL** when price crosses below EMA (bearish momentum)
-- Trades 50% of available balance per signal
+### Engine
 
-### DCA (Dollar Cost Averaging)
-- Buys $50 worth of EGLD every 10 price updates
-- Ignores price movements - pure time-based investing
-- Reduces average cost through consistent accumulation
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `PORT` | Yes | Server port (default: 3001) |
+| `MVX_API_URL` | No | MultiversX API (default: testnet) |
+| `COINGECKO_API_KEY` | No | CoinGecko API key (free tier works) |
+| `GOOGLE_API_KEY` | No | For AI-powered agent decisions |
+| `CONTRACT_ADDRESS` | No | Deployed contract address |
 
-### Mean Reversion (RSI)
-- Uses 14-period Relative Strength Index
-- **BUY** when RSI < 30 (oversold)
-- **SELL** when RSI > 70 (overbought)
-- Trades 30% of available balance per signal
+### Frontend
 
-## API Reference
-
-### Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/api/price` | Current EGLD price + indicators |
-| GET | `/api/leaderboard` | Tournament leaderboard |
-| GET | `/api/agents/:id` | Agent details |
-| POST | `/api/agents` | Register new agent |
-| GET | `/api/tournament` | Tournament status |
-| POST | `/api/tournament/start` | Start tournament |
-| POST | `/api/tournament/stop` | Stop tournament |
-
-### WebSocket
-
-Connect to `ws://localhost:3001` for real-time updates:
-- `price_update` - New price data
-- `leaderboard_update` - Rankings changed
-- `trade_executed` - Agent executed a trade
-
-## Smart Contract
-
-### Functions
-
-| Function | Access | Description |
-|----------|--------|-------------|
-| `registerAgent` | Public (payable) | Register with 0.01 EGLD fee |
-| `startTournament` | Owner | Start the tournament |
-| `updateScore` | Owner | Update agent ROI score |
-| `endTournament` | Owner | End and distribute prizes |
-| `getLeaderboard` | View | Get all agents sorted by ROI |
-| `getAgent` | View | Get single agent details |
-
-### Prize Distribution
-
-- 1st Place: 50% of prize pool
-- 2nd Place: 30% of prize pool
-- 3rd Place: 20% of prize pool
-
-## Configuration
-
-### Engine (.env)
-
-```env
-MVX_NETWORK=testnet
-CONTRACT_ADDRESS=erd1...
-GOOGLE_API_KEY=your-api-key
-PORT=3001
-```
-
-### Required API Keys
-
-1. **Google AI Studio** (free): https://aistudio.google.com/app/apikey
-2. **CoinGecko** (optional): https://www.coingecko.com/en/api
-
-## Testing
-
-```bash
-# Register test agents
-./contracts/scripts/interact.sh register "TestBot1" 0  # Momentum
-./contracts/scripts/interact.sh register "TestBot2" 1  # DCA
-./contracts/scripts/interact.sh register "TestBot3" 2  # Mean Reversion
-
-# Start tournament
-./contracts/scripts/interact.sh start
-
-# View leaderboard
-./contracts/scripts/interact.sh leaderboard
-```
-
-## Demo Video
-
-[Link to 2-3 min demo video showing tournament in action]
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_API_URL` | Yes | Backend API URL |
 
 ## Tech Stack
 
-- **Smart Contract:** Rust + MultiversX SDK
-- **Backend:** Node.js 23.3, TypeScript, Express
-- **Frontend:** React 18, Vite, TailwindCSS
+- **Smart Contract:** Rust, MultiversX SDK
+- **Backend:** Node.js 23.3, TypeScript, Express, WebSocket
+- **Frontend:** React 18, Vite, TailwindCSS, Recharts
 - **AI:** Eliza Framework, Portkey AI Gateway, Gemini 1.5 Flash
-- **Price Feed:** CoinGecko API, MultiversX API
-
-## Resources
-
-- [MultiversX Docs](https://docs.multiversx.com/)
-- [mx-agent-kit](https://github.com/multiversx/mx-agent-kit)
-- [Eliza Character Files](https://elizaos.github.io/eliza/docs/core/characterfile/)
-- [xExchange](https://xexchange.com/)
+- **Price Data:** CoinGecko API
+- **Deployment:** Vercel (frontend), Railway (backend)
 
 ## License
 
 MIT
-
----
-
-**Built for Build Wars - Battle of Nodes**
-*AI agents deciding and acting onchain*
